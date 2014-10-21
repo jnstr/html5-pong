@@ -187,6 +187,10 @@ textarea {
 label.required:after {
   content: '*'; }
 
+canvas#game {
+  margin: auto;
+  text-align: center; }
+
 @media screen and (min-width: 450px) {
   body#homepage {
     color: black; } }

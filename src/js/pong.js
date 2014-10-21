@@ -44,6 +44,9 @@ var pong = (function () {
             // update the ball
             game.ball.calculate();
             stage.elements.ball.moveTo(game.ball.x,game.ball.y);
+            // update the player
+            game.player.checkMouse();
+//            stage.elements.player.moveTo(game.player.x,game.player.y);
 
             stage.canvas.redraw();
         },
@@ -63,6 +66,37 @@ var pong = (function () {
                 this.x = 4;
                 this.y = (config.canvas.height / 2) - (config.player.height / 2);
                 this.missed = false;
+            },
+            checkMouse: function() {
+                document.onmousemove = game.player.move;
+            },
+            move: function (e) {
+                if (game.isPlaying){
+                    var y;
+                    if(!e) {
+                        e = window.event;
+                        y = e.event.offsetY;
+                    }
+                    else {
+                        y = e.pageY;
+                    }
+
+                    // set y-value so that it fit's the position of the canvas
+                    var offset = $("#game").offset();
+                    var top = offset.top;
+                    y -= top;
+
+                    // check if mouse position is inside canvas
+                    if (y < 0){y = 0;}
+                    else if (y > config.canvas.height - config.player.height){y = config.canvas.height - config.player.height;}
+
+                    // set y-values for both players
+                    game.player.y = y;
+
+                    // move the players
+                    stage.elements.player.moveTo(game.player.x,game.player.y);
+                    stage.canvas.redraw();
+                }
             }
         },
         /**
@@ -78,9 +112,9 @@ var pong = (function () {
              */
             init: function () {
                 this.x = config.canvas.width - 4 - config.player.width,
-                    this.y = (config.canvas.height / 2) - (config.player.height / 2),
-                    this.score = 0,
-                    this.missed = false
+                this.y = (config.canvas.height / 2) - (config.player.height / 2),
+                this.score = 0,
+                this.missed = false
             }
         },
         /**
@@ -102,7 +136,12 @@ var pong = (function () {
                 this.y = config.canvas.height / 2 - config.ball.size / 2;
                 this.speed = 5;
                 this.xDir = 1;
-                this.yMove = ((Math.random() * 2) - 1) * 3; //getal tss -3 & 3--> bepaling van hoek als de bal start
+                /**
+                 * number between 3 & -3
+                 * the angle the ball moves in for the start
+                 * @type {number}
+                 */
+                this.yMove = ((Math.random() * 2) - 1) * 3;
             },
             /**
              * Increment the speed of the ball
@@ -115,11 +154,11 @@ var pong = (function () {
              */
             calculate: function() {
                 switch (true) {
-                    case (game.ball.x <= game.player.x + config.player.width):
+                    case (game.ball.touchesPlayer()):
                         game.ball.xDir = 1;
                         game.ball.incrementSpeed();
                         break;
-                    case (game.ball.x + config.ball.size >= game.cpu.x):
+                    case (game.ball.touchesCpu()):
                         game.ball.xDir = -1;
                         game.ball.incrementSpeed();
                         break;
@@ -133,7 +172,44 @@ var pong = (function () {
                         break;
                 }
 
+                if (game.ball.touchesSides()) game.ball.yMove*= -1;
+
+                game.ball.y+= game.ball.yMove;
                 game.ball.x = game.ball.x + (game.ball.xDir * game.ball.speed);
+            },
+            /**
+             * Check if the ball touches the top or the bottom of the field
+             */
+            touchesSides: function() {
+                return (game.ball.y <= 0 || game.ball.y + config.ball.size >= config.canvas.height);
+            },
+            /**
+             * Check if the ball touches the cpu
+             */
+            touchesCpu: function() {
+                touches = false;
+                // x-values touch
+                if (game.ball.x + config.player.width >= game.cpu.x) {
+                    // y-values match up
+                    if (game.ball.y + config.ball.size > game.cpu.y && game.ball.y < game.cpu.y + config.player.height) {
+                        touches = true;
+                    }
+                }
+                return touches;
+            },
+            /**
+             * check if the ball touches the player
+             */
+            touchesPlayer: function() {
+                touches = false;
+                // x-values touch
+                if (game.ball.x <= game.player.x + config.player.width) {
+                    // y-values match up
+                    if (game.ball.y + config.ball.size > game.player.y && game.ball.y < game.player.y + config.player.height) {
+                        touches = true;
+                    }
+                }
+                return touches;
             }
         }
     };
@@ -212,6 +288,8 @@ var pong = (function () {
          * Play the pong game
          */
         play: function () {
+            game.isPlaying = true;
+            game.player.checkMouse();
             // repeat every 25 milliseconds = 25 frames/sec
             pong.interval = setInterval(function() {
                 game.update();
