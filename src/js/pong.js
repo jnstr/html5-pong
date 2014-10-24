@@ -28,7 +28,14 @@ var pong = (function () {
         ball: {
             size: myWindow.height/4*0.1,
             color: '#fff'
+        },
+        web: {
+            width: myWindow.width/200,
+            height: myWindow.height/50,
+            spacing: myWindow.height/35,
+            color: '#fff'
         }
+
     };
     /**
      * The game object
@@ -265,6 +272,9 @@ var pong = (function () {
      */
     stage = {
         canvas : false,
+        /**
+         * the non-static elements on the canvas
+         */
         elements: {
             ball: false,
             player: false,
@@ -283,6 +293,7 @@ var pong = (function () {
             stage.draw.ball();
             stage.draw.player();
             stage.draw.cpu();
+            stage.draw.web();
         },
         draw: {
             ball: function() {
@@ -320,6 +331,21 @@ var pong = (function () {
                     });
                 }
                 stage.canvas.addChild(stage.elements.cpu);
+            },
+            web: function() {
+                var pos	= 1;var r;
+
+                while (pos < config.canvas.height){
+                    r = stage.canvas.display.rectangle({
+                        x: (config.canvas.width / 2) - (config.web.width / 2),
+                        y: pos,
+                        width: config.web.width,
+                        height: config.web.height,
+                        fill: config.web.color
+                    });
+                    stage.canvas.addChild(r);
+                    pos+= config.web.spacing + config.web.height
+                }
             }
 
         }
