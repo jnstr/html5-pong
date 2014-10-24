@@ -2,6 +2,10 @@
  * Copyright (c) 2014 Jens Trio - jnstr.be
  */
 var pong = (function () {
+    myWindow = {
+        height: Math.min(document.documentElement.clientHeight, window.innerHeight || 350),
+        width: Math.min(document.documentElement.clientWidth, window.innerWidth || 160)
+    }
     /**
      * The interval for the game
      */
@@ -12,17 +16,17 @@ var pong = (function () {
      */
     config = {
         canvas: {
-            height: 350,
-            width: 500,
+            height: myWindow.height,
+            width: myWindow.width,
             color: '#000'
         },
         player: {
-            height: 60,
-            width: 17,
+            height: myWindow.height/4,
+            width: myWindow.height/4*0.1,
             'color': '#fff'
         },
         ball: {
-            size: 12,
+            size: myWindow.height/4*0.1,
             color: '#fff'
         }
     };
@@ -40,13 +44,17 @@ var pong = (function () {
             this.cpu.init();
             this.ball.init();
         },
+        /**
+         * Update the game
+         * note: player is not called here because it uses the mouse event
+         */
         update: function() {
             // update the ball
             game.ball.calculate();
             stage.elements.ball.moveTo(game.ball.x,game.ball.y);
-            // update the player
-            game.player.checkMouse();
-//            stage.elements.player.moveTo(game.player.x,game.player.y);
+            // update the cpu
+            game.cpu.calculate();
+            stage.elements.cpu.moveTo(game.cpu.x , game.cpu.y);
 
             stage.canvas.redraw();
         },
@@ -67,28 +75,29 @@ var pong = (function () {
                 this.y = (config.canvas.height / 2) - (config.player.height / 2);
                 this.missed = false;
             },
+            /**
+             * Add an event on mousemove
+             */
             checkMouse: function() {
                 document.onmousemove = game.player.move;
             },
+            /**
+             * Handle the mouse movement
+             * @param e
+             */
             move: function (e) {
                 if (game.isPlaying){
+                    // get y-pos of the cursor
                     var y;
-                    if(!e) {
-                        e = window.event;
-                        y = e.event.offsetY;
-                    }
-                    else {
-                        y = e.pageY;
-                    }
+                    if(!e) y = window.event.event.offsetY;
+                    else y = e.pageY;
 
-                    // set y-value so that it fit's the position of the canvas
-                    var offset = $("#game").offset();
-                    var top = offset.top;
-                    y -= top;
+                    // make sure y starts on the canvas
+                    y -= $("#game").offset().top;
 
-                    // check if mouse position is inside canvas
-                    if (y < 0){y = 0;}
-                    else if (y > config.canvas.height - config.player.height){y = config.canvas.height - config.player.height;}
+                    // calculate y-position of the player bat
+                    if (y < 0) y = 0;
+                    else if (y > config.canvas.height - config.player.height) y = config.canvas.height - config.player.height;
 
                     // set y-values for both players
                     game.player.y = y;
@@ -115,6 +124,32 @@ var pong = (function () {
                 this.y = (config.canvas.height / 2) - (config.player.height / 2),
                 this.score = 0,
                 this.missed = false
+            },
+            ballTriggersMovement: function() {
+                movement = .9*this.calculateMovement();
+                return (game.ball.y + config.ball.size + movement < game.cpu.y) || (game.ball.y  > game.cpu.y + config.player.height - movement);
+
+            },
+            calculateMovement: function() {
+                var max = 1.5;
+                var min = 0.5;
+                var rand = Math.random() * (max - min) + min;
+                tmpNmbr =  Math.abs(rand*game.ball.yMove);
+
+                movementDir = (game.cpu.y + (config.player.height/2) > game.ball.y + (config.ball.size/2)) ? -1 : 1;
+
+                return tmpNmbr*movementDir;
+
+            },
+            calculate: function() {
+                /**
+                 * how much should we move?
+                 */
+                if (this.ballTriggersMovement()) {
+                    game.cpu.y += this.calculateMovement();
+                }
+                if (game.cpu.y < 0) game.cpu.y = 0;
+                else if (game.cpu.y > config.canvas.height - config.player.height) game.cpu.y = config.canvas.height - config.player.height;
             }
         },
         /**
@@ -127,15 +162,18 @@ var pong = (function () {
             xDir: 1,
             yMove: 0,
             radius: config.ball.size,
-            maxSpeed: 20,
+            maxSpeed: 0,
             /**
              * (re-)nit the ball
              */
             init: function () {
+
+
                 this.x = config.canvas.width / 2 - config.ball.size / 2;
                 this.y = config.canvas.height / 2 - config.ball.size / 2;
-                this.speed = 5;
+                this.speed = config.ball.size/3;
                 this.xDir = 1;
+                this.maxSpeed = config.ball.size*1.5;
                 /**
                  * number between 3 & -3
                  * the angle the ball moves in for the start
@@ -193,6 +231,10 @@ var pong = (function () {
                     // y-values match up
                     if (game.ball.y + config.ball.size > game.cpu.y && game.ball.y < game.cpu.y + config.player.height) {
                         touches = true;
+                        // now calculate y-movement
+                        var center = game.cpu.y + (config.player.height / 2);
+                        var ballPosition = game.ball.y + (config.ball.size / 2);
+                        game.ball.yMove = (ballPosition-center)/(config.ball.size/2);
                     }
                 }
                 return touches;
@@ -207,6 +249,10 @@ var pong = (function () {
                     // y-values match up
                     if (game.ball.y + config.ball.size > game.player.y && game.ball.y < game.player.y + config.player.height) {
                         touches = true;
+                        // now calculate y movement
+                        var center = game.player.y + (config.player.height / 2);
+                        var ballPosition = game.ball.y + (config.ball.size / 2);
+                        game.ball.yMove = (ballPosition-center)/config.ball.size;
                     }
                 }
                 return touches;
@@ -260,7 +306,6 @@ var pong = (function () {
                         height: config.player.height,
                         fill: config.player.color
                     });
-                    console.log(stage.elements.player);
                 }
                 stage.canvas.addChild(stage.elements.player);
             },
@@ -273,7 +318,6 @@ var pong = (function () {
                         height: config.player.height,
                         fill: config.player.color
                     });
-                    console.log(stage.elements.cpu);
                 }
                 stage.canvas.addChild(stage.elements.cpu);
             }
@@ -298,8 +342,8 @@ var pong = (function () {
         },
         /**
          * Init the pong game
-         * set the canvas
          * set the game (players, ball...)
+         * set the canvas
          */
         init: function () {
             game.init();
