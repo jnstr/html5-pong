@@ -5,7 +5,7 @@ var pong = (function () {
     myWindow = {
         height: Math.min(document.documentElement.clientHeight, window.innerHeight || 350),
         width: Math.min(document.documentElement.clientWidth, window.innerWidth || 160)
-    }
+    };
     /**
      * The interval for the game
      */
@@ -34,8 +34,16 @@ var pong = (function () {
             height: myWindow.height/50,
             spacing: myWindow.height/35,
             color: '#fff'
+        },
+        scores: {
+            fontsize: 120,
+            playerScore: {
+                xPos: (myWindow.width / 2) - (myWindow.width / 10)
+            },
+            cpuScore: {
+                xPos: (myWindow.width / 2) + (myWindow.width / 10)
+            }
         }
-
     };
     /**
      * The game object
@@ -63,8 +71,42 @@ var pong = (function () {
             // update the cpu
             game.cpu.calculate();
             stage.elements.cpu.moveTo(game.cpu.x , game.cpu.y);
+            // draw the scores
+            game.score.draw();
+            // check scores (last so we can see the winning score
+            game.score.check();
 
             stage.canvas.redraw();
+        },
+        score: {
+            draw: function() {
+                for (var score in stage.scores) {
+                    // remove score from the screen
+                    if (game.isPlaying == true && stage.scores[score] != false) {
+                        stage.canvas.removeChild(stage.scores[score]);
+                    }
+
+                    stage.scores[score] = stage.canvas.display.text({
+                        x: config.scores[score]['xPos'],
+                        y: 0,
+                        font: "bold " + config.scores.fontsize +"px Geo",
+                        origin: {x: "center", y: "top"},
+                        text: game[score.replace('Score','')].score + '',
+                        fill: "#fff"
+                    });
+
+                    stage.canvas.addChild(stage.scores[score]);
+                }
+            },
+            check: function() {
+                if (game.player.score == 10) {
+                    alert('Great! you won the game!');
+                    window.clearInterval(pong.interval);
+                } else if (game.cpu.score == 10) {
+                    alert('Did you really think you could win?');
+                    window.clearInterval(pong.interval);
+                }
+            }
         },
         /**
          * The player (player)
@@ -219,13 +261,15 @@ var pong = (function () {
                         break;
                     case (game.ball.x <= 0):
                         game.sound.play('score');
-                        alert('cpu won the game');
-                        window.clearInterval(pong.interval);
+                        game.cpu.score++;
+                        game.score.draw();
+                        game.ball.init();
                         break;
                     case (game.ball.x >= (config.canvas.width - config.ball.size)):
                         game.sound.play('score');
-                        alert('user won the game');
-                        window.clearInterval(pong.interval);
+                        game.player.score++;
+                        game.score.draw();
+                        game.ball.init();
                         break;
                 }
 
@@ -322,6 +366,10 @@ var pong = (function () {
             ball: false,
             player: false,
             cpu: false
+        },
+        scores: {
+            playerScore: false,
+            cpuScore: false
         },
         init: function () {
             if (stage.canvas) {
