@@ -21,7 +21,7 @@ var pong = (function () {
             color: '#000'
         },
         player: {
-            height: myWindow.height/4,
+            height: myWindow.height/7,
             width: myWindow.height/4*0.1,
             'color': '#fff'
         },
@@ -102,6 +102,9 @@ var pong = (function () {
                     // make sure y starts on the canvas
                     y -= $("#game").offset().top;
 
+                    // mouse position in the center
+                    y-= (config.player.height/2);
+
                     // calculate y-position of the player bat
                     if (y < 0) y = 0;
                     else if (y > config.canvas.height - config.player.height) y = config.canvas.height - config.player.height;
@@ -133,15 +136,21 @@ var pong = (function () {
                 this.missed = false
             },
             ballTriggersMovement: function() {
-                movement = .9*this.calculateMovement();
-                return (game.ball.y + config.ball.size + movement < game.cpu.y) || (game.ball.y  > game.cpu.y + config.player.height - movement);
+                return (
+                    (game.ball.y + config.ball.size < game.cpu.y + (config.player.height/3)) // ball is too high to touch
+                    ||
+                    (game.ball.y  > game.cpu.y - (config.player.height/3)) // ball is too low to touch
+                );
 
             },
             calculateMovement: function() {
-                var max = 1.5;
-                var min = 0.5;
+                var max = 1;
+                var min = .8;
                 var rand = Math.random() * (max - min) + min;
                 tmpNmbr =  Math.abs(rand*game.ball.yMove);
+                if (game.ball.yMove < 2 && game.ball.yMove > -2) {
+                    tmpNmbr*=4;
+                }
 
                 movementDir = (game.cpu.y + (config.player.height/2) > game.ball.y + (config.ball.size/2)) ? -1 : 1;
 
@@ -178,9 +187,9 @@ var pong = (function () {
 
                 this.x = config.canvas.width / 2 - config.ball.size / 2;
                 this.y = config.canvas.height / 2 - config.ball.size / 2;
-                this.speed = config.ball.size/3;
+                this.speed = config.ball.size/2;
                 this.xDir = 1;
-                this.maxSpeed = config.ball.size*1.5;
+                this.maxSpeed = config.ball.size*3;
                 /**
                  * number between 3 & -3
                  * the angle the ball moves in for the start
@@ -241,7 +250,7 @@ var pong = (function () {
                         // now calculate y-movement
                         var center = game.cpu.y + (config.player.height / 2);
                         var ballPosition = game.ball.y + (config.ball.size / 2);
-                        game.ball.yMove = (ballPosition-center)/(config.ball.size/2);
+                        game.ball.yMove = (ballPosition-center)/(config.ball.size/4);
                     }
                 }
                 return touches;
@@ -259,7 +268,7 @@ var pong = (function () {
                         // now calculate y movement
                         var center = game.player.y + (config.player.height / 2);
                         var ballPosition = game.ball.y + (config.ball.size / 2);
-                        game.ball.yMove = (ballPosition-center)/config.ball.size;
+                        game.ball.yMove = (ballPosition-center)/(config.ball.size/4);
                     }
                 }
                 return touches;
@@ -374,6 +383,7 @@ var pong = (function () {
         init: function () {
             game.init();
             stage.init();
+            this.play();
         }
     };
 })();
