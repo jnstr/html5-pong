@@ -1,7 +1,32 @@
-canvas#game {
-	//background: black;
-	//width: 500px;
-	//height: 350px;
-	margin: auto;
+html,body {
+	background: black;
+	box-sizing: border-box;
+	font-family: 'Geo', sans-serif;
+	color: white;
 	text-align: center;
+}
+
+#content {
+	margin-top: 2em;
+}
+
+a {
+	color: white;
+	text-decoration: none;
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+.cot {
+	font-size: 2rem;
+	padding: 1rem;
+	border: .2rem solid white;
+	display:  inline-block;
+	margin: 1em 0 0 0;
+	&:hover {
+		background: white;
+		color: black;
+		text-decoration: none;
+	}
 }

@@ -3,9 +3,21 @@
 <head>
 	<meta charset="UTF-8">
 	<title>HTML5 pong</title>
+	<link href='http://fonts.googleapis.com/css?family=Geo' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="./src/css/screen.css"/>
 </head>
 <body>
+
+<section id="content">
+	<h1>PONG</h1>
+	<p>A simple HTML pong game</p>
+	<p>Play against the cpu and be the first one to gain 10 points!<br>
+	You can move your bat using your mouse, and you score when the cpu misses.<br>
+	good luck!</p>
+	<a href="#" class="cot" id="startgame">Start playing</a><br>
+	<a href="https://github.com/jnstr/html5-pong" target="_blank">or view on GitHub</a>
+</section>
+
 
 <canvas id="game"></canvas>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/ocanvas/2.7.3/ocanvas.min.js"></script>
@@ -13,7 +25,11 @@
 <script src="./src/js/pong.js"></script>
 <script>
 	$(function() {
-		pong.init();
+		$('#startgame').bind('click', function(e) {
+			e.preventDefault();
+			$('#content').remove();
+			pong.init();
+		});
 	});
 </script>
 </body>

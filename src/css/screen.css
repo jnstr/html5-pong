@@ -150,6 +150,9 @@ input[type=button] {
 .clearfix {
   zoom: 1; }
 
+h1 {
+  font-size: 4rem; }
+
 .floatLeft {
   float: left; }
 
@@ -187,9 +190,32 @@ textarea {
 label.required:after {
   content: '*'; }
 
-canvas#game {
-  margin: auto;
+html, body {
+  background: black;
+  box-sizing: border-box;
+  font-family: 'Geo', sans-serif;
+  color: white;
   text-align: center; }
+
+#content {
+  margin-top: 2em; }
+
+a {
+  color: white;
+  text-decoration: none; }
+  a:hover {
+    text-decoration: underline; }
+
+.cot {
+  font-size: 2rem;
+  padding: 1rem;
+  border: .2rem solid white;
+  display: inline-block;
+  margin: 1em 0 0 0; }
+  .cot:hover {
+    background: white;
+    color: black;
+    text-decoration: none; }
 
 @media screen and (min-width: 450px) {
   body#homepage {
