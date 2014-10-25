@@ -50,6 +50,7 @@ var pong = (function () {
             this.player.init();
             this.cpu.init();
             this.ball.init();
+            this.sound.init();
         },
         /**
          * Update the game
@@ -183,8 +184,6 @@ var pong = (function () {
              * (re-)nit the ball
              */
             init: function () {
-
-
                 this.x = config.canvas.width / 2 - config.ball.size / 2;
                 this.y = config.canvas.height / 2 - config.ball.size / 2;
                 this.speed = config.ball.size/2;
@@ -209,24 +208,31 @@ var pong = (function () {
             calculate: function() {
                 switch (true) {
                     case (game.ball.touchesPlayer()):
+                        game.sound.play('player');
                         game.ball.xDir = 1;
                         game.ball.incrementSpeed();
                         break;
                     case (game.ball.touchesCpu()):
+                        game.sound.play('cpu');
                         game.ball.xDir = -1;
                         game.ball.incrementSpeed();
                         break;
                     case (game.ball.x <= 0):
+                        game.sound.play('score');
                         alert('cpu won the game');
                         window.clearInterval(pong.interval);
                         break;
                     case (game.ball.x >= (config.canvas.width - config.ball.size)):
+                        game.sound.play('score');
                         alert('user won the game');
                         window.clearInterval(pong.interval);
                         break;
                 }
 
-                if (game.ball.touchesSides()) game.ball.yMove*= -1;
+                if (game.ball.touchesSides()) {
+                    game.sound.play('wall');
+                    game.ball.yMove*= -1;
+                }
 
                 game.ball.y+= game.ball.yMove;
                 game.ball.x = game.ball.x + (game.ball.xDir * game.ball.speed);
@@ -272,6 +278,34 @@ var pong = (function () {
                     }
                 }
                 return touches;
+            }
+        },
+        sound: {
+            sounds: {
+                wall: false,
+                player: false,
+                cpu: false,
+                score: false
+            },
+            init: function() {
+                this.sounds.wall = document.getElementById('bounceWall');
+                this.sounds.player = document.getElementById('bouncePlayer1');
+                this.sounds.cpu = document.getElementById('bouncePlayer2');
+                this.sounds.score = document.getElementById('scoreYes');
+            },
+            play: function(name) {
+                if (this.sounds[name]) {
+                    s = this.sounds[name];
+                    try {
+                        if (!s.paused) {
+                            // Pause and reset it
+                            s.pause();
+                            s.currentTime = 0;
+                        }
+                        s.play();
+                    }
+                    catch(e) {}
+                }
             }
         }
     };
