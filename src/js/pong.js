@@ -196,9 +196,7 @@ var pong = (function () {
                 );
             },
             calculateMovement: function() {
-                var max = 1;
-                var min = .8;
-                var rand = Math.random() * (max - min) + min;
+                var rand = .85;
                 tmpNmbr =  Math.abs(rand*game.ball.yMove);
                 if (game.ball.yMove < 2 && game.ball.yMove > -2) {
                     tmpNmbr*=4;
