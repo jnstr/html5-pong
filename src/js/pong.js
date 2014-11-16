@@ -37,6 +37,7 @@ var pong = (function () {
         },
         scores: {
             fontsize: 120,
+            maxScore: 10,
             playerScore: {
                 xPos: (myWindow.width / 2) - (myWindow.width / 10)
             },
@@ -99,13 +100,22 @@ var pong = (function () {
                 }
             },
             check: function() {
-                if (game.player.score == 10) {
-                    alert('Great! you won the game!');
-                    window.clearInterval(pong.interval);
-                } else if (game.cpu.score == 10) {
-                    alert('Did you really think you could win?');
+                if (game.player.score == config.scores.maxScore || game.cpu.score == config.scores.maxScore) {
+                    drawEndMessage();
                     window.clearInterval(pong.interval);
                 }
+                drawEndMessage = function() {
+                    stage.createCanvas();
+                    var text = stage.canvas.display.text({
+                        x: config.canvas.width / 2,
+                        y: config.canvas.height / 3,
+                        origin: { x: "center", y: "top" },
+                        font: "bold 30px Geo",
+                        text: (game.player.score > game.cpu.score) ? 'Great, you won the game!' : 'Too bad, cpu won the game.',
+                        fill: '#fff'
+                    });
+                    stage.canvas.addChild(text);
+                };
             }
         },
         /**
@@ -184,7 +194,6 @@ var pong = (function () {
                     ||
                     (game.ball.y  > game.cpu.y - (config.player.height/3)) // ball is too low to touch
                 );
-
             },
             calculateMovement: function() {
                 var max = 1;
@@ -372,6 +381,13 @@ var pong = (function () {
             cpuScore: false
         },
         init: function () {
+            stage.createCanvas();
+            stage.draw.ball();
+            stage.draw.player();
+            stage.draw.cpu();
+            stage.draw.web();
+        },
+        createCanvas: function() {
             if (stage.canvas) {
                 stage.canvas.reset();
             }
@@ -381,10 +397,7 @@ var pong = (function () {
             });
             stage.canvas.width= config.canvas.width;
             stage.canvas.height= config.canvas.height;
-            stage.draw.ball();
-            stage.draw.player();
-            stage.draw.cpu();
-            stage.draw.web();
+            stage.canvas.redraw();
         },
         draw: {
             ball: function() {
